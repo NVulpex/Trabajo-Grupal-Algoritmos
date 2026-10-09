@@ -37,6 +37,9 @@ int buscarMozos(Mozo m[], int len, char nombre[]);
 void ordenarComandas(Comanda c[], int len);
 int buscarFecha(char fechas[][11], int len, char fecha[]);
 int buscarProducto(FILE* inventario, int codigo);
+void obtenerFecha(char fecha[], int &dia, int &mes, int &anio);
+void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos);
+void ordenarArchivoComandas(char nombreArchivo[]);
 
 int main()
 {
@@ -52,7 +55,7 @@ int main()
 
     ComandaHistorica ch;
 
-    // Crear los mozos y acumular sus comisiones
+    //Crear los mozos y acumular sus comisiones
     while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
         int pos = buscarMozos(mozos, Cantmozos, ch.nombreMozo);
 
@@ -69,67 +72,21 @@ int main()
         }
     }
 
-    // Guardar los mozos
+    //Guardar los mozos
     for(int i = 0; i < Cantmozos; i++){
         fwrite(&mozos[i], sizeof(Mozo), 1, Mozos);
     }
 
     fclose(Mozos);
 
-    // Obtener las fechas diferentes
-    Comanda comandas[100];
-    int cantComandas;
-
-    char fechas[100][11];
-    int cantFechas = 0;
-
+    //Generar los archivos directamente desde el main
     fseek(comanda, 0, SEEK_SET);
+
     while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
-        int pos = buscarFecha(fechas, cantFechas, ch.fecha);
-
-        if(pos == -1){
-            strcpy(fechas[cantFechas], ch.fecha);
-            cantFechas++;
-        }
+      agregarComandaArchivo(ch, mozos, Cantmozos);
     }
 
-    // Crear un archivo diario por cada fecha
-    for(int f = 0; f < cantFechas; f++){
-        cantComandas = 0;
-        fseek(comanda, 0, SEEK_SET);
-
-        while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
-            if(strcmp(ch.fecha, fechas[f]) == 0){
-                int posMozo = buscarMozos(mozos, Cantmozos, ch.nombreMozo);
-
-                comandas[cantComandas].idMozo = mozos[posMozo].idMozo;
-                comandas[cantComandas].codigoProducto = ch.codigoProducto;
-                comandas[cantComandas].cantidad = ch.cantidad;
-                comandas[cantComandas].comision = ch.comision;
-
-                cantComandas++;
-            }
-        }
-
-        // Ordenar las comandas por id de mozo
-        ordenarComandas(comandas, cantComandas);
-
-        char nombreArchivo[30];
-        sprintf(nombreArchivo, "comandas_%s.dat", fechas[f]); // Crear el nombre del archivo diario para la fecha actual
-        FILE* diario = fopen(nombreArchivo, "wb");
-
-        if(diario == NULL){
-          cout << "Error al crear el archivo diario." << endl;
-          return 1;
-        }
-
-        for(int i = 0; i < cantComandas; i++){
-            fwrite(&comandas[i], sizeof(Comanda), 1, diario);
-        }
-        fclose(diario);
-    }
-
-    // Actualizar el stock del inventario
+    //Actualizar el stock del inventario
     fseek(comanda, 0, SEEK_SET);
 
     while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
@@ -180,7 +137,7 @@ void encriptar(char clave[], int l, int k){
     }
 }
 
-void ordenarComandas(Comanda c[], int len){ // ordenamiento burbuja por id de mozo
+void ordenarComandas(Comanda c[], int len){ //ordenamiento burbuja por id de mozo
     for(int i = 0; i < len - 1; i++){
         for(int j = 0; j < len - 1 - i; j++){
             if(c[j].idMozo > c[j + 1].idMozo){
@@ -232,4 +189,41 @@ int buscarProducto(FILE* inventario, int codigo){   //busqueda binaria de un pro
         }
     }
     return -1;
+}
+
+void obtenerFecha(char fecha[], int &dd, int &mm, int &aaaa)
+{
+    sscanf(fecha, "%d-%d-%d", &dd, &mm, &aaaa);
+}
+
+void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos){
+    int dd, mm, aaaa;
+    obtenerFecha(ch.fecha,dd,mm,aaaa);
+
+    char nombreArchivo[50];
+
+    sprintf(nombreArchivo, "Comandas %02d-%02d-%04d.dat",dd,mm,aaaa);
+
+    int posMozo = buscarMozos(mozos, cantMozos, ch.nombreMozo);
+
+    if(posMozo == -1){
+        cout <<"No se encontro el mozo: "<<ch.nombreMozo<< endl;
+        return;
+    }
+
+    Comanda c;
+    c.idMozo = mozos[posMozo].idMozo;
+    c.codigoProducto = ch.codigoProducto;
+    c.cantidad = ch.cantidad;
+    c.comision = ch.comision;
+
+    FILE* archivo = fopen(nombreArchivo, "ab");
+    if(archivo == NULL){
+        cout << "Error al abrir " << nombreArchivo << endl;
+        return;
+    }
+
+    fwrite(&c, sizeof(Comanda), 1, archivo);
+    fclose(archivo);
+    ordenarArchivoComandas(nombreArchivo);
 }
