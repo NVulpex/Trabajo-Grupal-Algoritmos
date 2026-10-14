@@ -41,6 +41,7 @@ void obtenerFecha(char fecha[], int &dia, int &mes, int &anio);
 void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos);
 void ordenarArchivoComandas(char nombreArchivo[]);
 
+// Hace todo el proceso: crea los mozos, genera las planillas por día, las ordena y actualiza el stock
 int main()
 {
     FILE* comanda = fopen("comandas_historicas.dat", "rb");
@@ -79,11 +80,30 @@ int main()
 
     fclose(Mozos);
 
-    //Generar los archivos directamente desde el main
+    //Generar una planilla por día
+    char fechas[400][11];
+    int cantFechas = 0;
+
     fseek(comanda, 0, SEEK_SET);
 
     while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
       agregarComandaArchivo(ch, mozos, Cantmozos);
+
+      if(buscarFecha(fechas, cantFechas, ch.fecha) == -1){
+          strcpy(fechas[cantFechas], ch.fecha);
+          cantFechas++;
+      }
+    }
+
+    //Ordenar cada planilla una sola vez
+    for(int i = 0; i < cantFechas; i++){
+        int dd, mm, aaaa;
+        char nombreArchivo[50];
+
+        obtenerFecha(fechas[i], dd, mm, aaaa);
+        sprintf(nombreArchivo, "comandas_%02d-%02d-%04d.dat", dd, mm, aaaa);
+
+        ordenarArchivoComandas(nombreArchivo);
     }
 
     //Actualizar el stock del inventario
@@ -116,7 +136,7 @@ int main()
     return 0;
 }
 
-
+// Busca un mozo por nombre y devuelve su posición, o -1 si no está
 int buscarMozos(Mozo m[], int len, char nombre[]){
     int i = 0;
 
@@ -131,13 +151,15 @@ int buscarMozos(Mozo m[], int len, char nombre[]){
     }
 }
 
+// Le suma k a cada carácter de la clave para que no se lea tal cual
 void encriptar(char clave[], int l, int k){
     for(int x = 0; x < l; x++){
         clave[x] = clave[x] + k;
     }
 }
 
-void ordenarComandas(Comanda c[], int len){ //ordenamiento burbuja por id de mozo
+// Ordena un vector de comandas por idMozo (burbuja)
+void ordenarComandas(Comanda c[], int len){
     for(int i = 0; i < len - 1; i++){
         for(int j = 0; j < len - 1 - i; j++){
             if(c[j].idMozo > c[j + 1].idMozo){
@@ -149,8 +171,7 @@ void ordenarComandas(Comanda c[], int len){ //ordenamiento burbuja por id de moz
     }
 }
 
-
-
+// Busca una fecha en la lista y devuelve su posición, o -1 si no está
 int buscarFecha(char fechas[][11], int len, char fecha[]){
     int i = 0;
 
@@ -163,8 +184,8 @@ int buscarFecha(char fechas[][11], int len, char fecha[]){
         return i;
 }
 
-
-int buscarProducto(FILE* inventario, int codigo){   //busqueda binaria de un producto en el inventario por su codigo
+// Busca un producto por código en el inventario (búsqueda binaria) y devuelve su posición, o -1 si no existe
+int buscarProducto(FILE* inventario, int codigo){
     fseek(inventario, 0, SEEK_END);
 
     int n = ftell(inventario) / sizeof(Producto);
@@ -191,18 +212,20 @@ int buscarProducto(FILE* inventario, int codigo){   //busqueda binaria de un pro
     return -1;
 }
 
+// Separa una fecha "DD-MM-AAAA" en día, mes y año
 void obtenerFecha(char fecha[], int &dd, int &mm, int &aaaa)
 {
     sscanf(fecha, "%d-%d-%d", &dd, &mm, &aaaa);
 }
 
+// Guarda la venta (con el ID del mozo) en el archivo de su día, creándolo si no existe
 void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos){
     int dd, mm, aaaa;
     obtenerFecha(ch.fecha,dd,mm,aaaa);
 
     char nombreArchivo[50];
 
-    sprintf(nombreArchivo, "Comandas %02d-%02d-%04d.dat",dd,mm,aaaa);
+    sprintf(nombreArchivo, "comandas_%02d-%02d-%04d.dat",dd,mm,aaaa);
 
     int posMozo = buscarMozos(mozos, cantMozos, ch.nombreMozo);
 
@@ -225,5 +248,31 @@ void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos){
 
     fwrite(&c, sizeof(Comanda), 1, archivo);
     fclose(archivo);
-    ordenarArchivoComandas(nombreArchivo);
+}
+
+// Lee un archivo de día a memoria, lo ordena por mozo y lo reescribe
+void ordenarArchivoComandas(char nombreArchivo[]){
+    FILE* f = fopen(nombreArchivo, "rb");
+    if(f == NULL) return;
+
+    fseek(f, 0, SEEK_END);
+    int n = ftell(f) / sizeof(Comanda);
+    fseek(f, 0, SEEK_SET);
+
+    Comanda* c = new Comanda[n];
+    int i = 0;
+    while(fread(&c[i], sizeof(Comanda), 1, f) == 1){
+        i++;
+    }
+    fclose(f);
+
+    ordenarComandas(c, n);
+
+    f = fopen(nombreArchivo, "wb");
+    for(int j = 0; j < n; j++){
+        fwrite(&c[j], sizeof(Comanda), 1, f);
+    }
+    fclose(f);
+
+    delete[] c;
 }
