@@ -1,6 +1,6 @@
 # Trabajo-Grupal-Algoritmos
 # TP Integrador — El buffet de Alberto
-**Grupo N° [2]
+**Grupo N° [2]**
 
 ## Integrantes
 | Nombre | Usuario de GitHub | Parte |
