@@ -9,7 +9,7 @@
 | Valentino Taravini | valentaravini | normalizacion.cpp |
 | Joaquin Alegre | a7egre | ventas.cpp |
 | [Nombre] | Tomas-crea | cierre.cpp |
-| [Nombre] | francoledesma05 | resumen.cpp |
+| Franco Ledesma | francoledesma05 | resumen.cpp |
 
 ## Cómo compilar
 ```
@@ -33,4 +33,4 @@ Poner `comandas_historicas.dat` e `inventario.dat` en la misma carpeta y correr:
 - **Claves:** a cada carácter se le suma K = 7 (corrimiento). La clave inicial es el número del mozo. Para verificar, a la clave que se tipea se le suma 7 y se compara con la guardada. Se puede deshacer restando 7.
 - **Ventas:** primero se valida que el mozo exista, después la clave. El precio se busca con búsqueda binaria y la comisión es el 10% de lo vendido. Al terminar, la planilla del día se ordena por mozo.
 - **Cierre:** las planillas diarias ya están ordenadas por mozo, así que se combinan con **apareo**: siempre se toma la venta con el idMozo menor.
-- **Resumen:** **corte de control** por idMozo sobre la planilla semanal, que está ordenada. Muestra productos y comisión por mozo y el total del buffet.
+- **Resumen:** **corte de control** por idMozo sobre la planilla semanal, que ya viene ordenada por mozo desde cierre. Se recorre el archivo una sola vez, sin cargarlo en memoria, con lectura anticipada y `while (fread(...) == 1)`. Por cada mozo muestra la cantidad de productos y la comisión, y al final el total de productos del buffet. El nombre se busca en `mozos.dat` por idMozo. Casos raros: el último mozo se cierra cuando `fread` falla (no necesita un mozo siguiente), si el archivo está vacío avisa que no hay registros, si no se puede abrir muestra un error, y si el id no está en `mozos.dat` muestra "Desconocido".
