@@ -41,7 +41,6 @@ void obtenerFecha(char fecha[], int &dia, int &mes, int &anio);
 void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos);
 void ordenarArchivoComandas(char nombreArchivo[]);
 
-// Hace todo el proceso: crea los mozos, genera las planillas por día, las ordena y actualiza el stock
 int main()
 {
     FILE* comanda = fopen("comandas_historicas.dat", "rb");
@@ -84,6 +83,20 @@ int main()
     char fechas[400][11];
     int cantFechas = 0;
 
+    //Eliminar las planillas de ejecuciones anteriores
+    fseek(comanda, 0, SEEK_SET);
+
+    while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
+        int dd, mm, aaaa;
+        char nombreArchivo[50];
+
+        obtenerFecha(ch.fecha, dd, mm, aaaa);
+        sprintf(nombreArchivo, "comandas_%02d-%02d-%04d.dat", dd, mm, aaaa);
+
+        remove(nombreArchivo);
+    }
+
+    //Volver al principio del archivo
     fseek(comanda, 0, SEEK_SET);
 
     while(fread(&ch, sizeof(ComandaHistorica), 1, comanda) == 1){
@@ -116,7 +129,8 @@ int main()
             fseek(inventario, pos * sizeof(Producto), SEEK_SET);
             Producto p;
             fread(&p, sizeof(Producto), 1, inventario);
-
+            if(p.stockActual<=0)
+              cout<<"No hay stock";
             if(p.stockActual-ch.cantidad >= 0)
               p.stockActual -= ch.cantidad;
             else{
@@ -224,7 +238,6 @@ void agregarComandaArchivo(ComandaHistorica ch,Mozo mozos[],int cantMozos){
     obtenerFecha(ch.fecha,dd,mm,aaaa);
 
     char nombreArchivo[50];
-
     sprintf(nombreArchivo, "comandas_%02d-%02d-%04d.dat",dd,mm,aaaa);
 
     int posMozo = buscarMozos(mozos, cantMozos, ch.nombreMozo);
