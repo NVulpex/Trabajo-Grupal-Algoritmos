@@ -6,7 +6,7 @@
 | Nombre | Usuario de GitHub | Parte |
 |---|---|---|
 | [Nombre] | NVulpex | normalizacion.cpp |
-| [Valentino Taravini] | valentaravini | normalizacion.cpp |
+| Valentino Taravini | valentaravini | normalizacion.cpp |
 | [Nombre] | a7egre | ventas.cpp |
 | [Nombre] | Tomas-crea | cierre.cpp |
 | [Nombre] | francoledesma05 | resumen.cpp |
