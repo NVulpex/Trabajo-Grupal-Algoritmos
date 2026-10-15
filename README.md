@@ -5,10 +5,10 @@
 ## Integrantes
 | Nombre | Usuario de GitHub | Parte |
 |---|---|---|
-| [Agustin Uriel Ludi] | NVulpex | normalizacion.cpp |
+| Agustin Uriel Ludi | NVulpex | normalizacion.cpp |
 | Valentino Taravini | valentaravini | normalizacion.cpp |
 | Joaquin Alegre | a7egre | ventas.cpp |
-| [Fidel Tomas Guaricuyu] | Tomas-crea | cierre.cpp |
+| Fidel Tomas Guaricuyu | Tomas-crea | cierre.cpp |
 | Franco Ledesma | francoledesma05 | resumen.cpp |
 
 ## Cómo compilar
