@@ -7,7 +7,7 @@
 |---|---|---|
 | [Nombre] | NVulpex | normalizacion.cpp |
 | Valentino Taravini | valentaravini | normalizacion.cpp |
-| [Nombre] | a7egre | ventas.cpp |
+| Joaquin Alegre | a7egre | ventas.cpp |
 | [Nombre] | Tomas-crea | cierre.cpp |
 | [Nombre] | francoledesma05 | resumen.cpp |
 
