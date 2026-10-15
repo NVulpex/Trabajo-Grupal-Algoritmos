@@ -40,9 +40,9 @@ string obtenerNombreMozo(int idBuscado) {
 int main() {
     string nombreArchivoSemanal;
 
-    cout << "==========================================" << endl;
-    cout << "    BUFFET ALBERT EINSTEIN - RESUMEN      " << endl;
-    cout << "==========================================" << endl;
+    cout << "======================================================================" << endl;
+    cout << "                 BUFFET ALBERT EINSTEIN - RESUMEN                     " << endl;
+    cout << "======================================================================" << endl;
     cout << "Ingrese el nombre del archivo semanal (ej: comandas_semana_s1-06.dat): ";
     cin >> nombreArchivoSemanal;
 
@@ -53,46 +53,49 @@ int main() {
     }
 
     cout << "\n----------------------------------------------------------------------" << endl;
-    cout << left << setw(10) << "ID MOZO" 
-         << setw(30) << "NOMBRE DEL MOZO" 
-         << setw(18) << "CANT. PRODUCTOS" 
+    cout << left << setw(10) << "ID MOZO"
+         << setw(30) << "NOMBRE DEL MOZO"
+         << right << setw(15) << "CANT. PRODUCTOS"
          << setw(15) << "COMISION ($)" << endl;
     cout << "----------------------------------------------------------------------" << endl;
 
     Comanda reg;
     int totalProductosBuffet = 0;
+    double totalComisionBuffet = 0.0;
+
+    bool hayRegistro = (fread(&reg, sizeof(Comanda), 1, fSemanal) == 1);
     
-    if (fread(&reg, sizeof(Comanda), 1, fSemanal) == 1) {
-        
-        while (!feof(fSemanal) && !ferror(fSemanal)) {
-            int mozoActual = reg.idMozo;
-            int productosPorMozo = 0;
-            float comisionPorMozo = 0.0f;
-            while (!feof(fSemanal) && reg.idMozo == mozoActual) {
-                productosPorMozo += reg.cantidad;
-                comisionPorMozo += reg.comision;
-                if (fread(&reg, sizeof(Comanda), 1, fSemanal) != 1) {
-                    break;
-                }
-            }
-            
-            string nombreMozo = obtenerNombreMozo(mozoActual);
-            cout << left << setw(10) << mozoActual 
-                 << setw(30) << nombreMozo 
-                 << right << setw(15) << productosPorMozo 
-                 << setw(15) << fixed << setprecision(2) << comisionPorMozo << endl;
-            totalProductosBuffet += productosPorMozo;
+    while (hayRegistro) {
+        int mozoActual = reg.idMozo;
+        int productosPorMozo = 0;
+        double comisionPorMozo = 0.0;
+
+        while (hayRegistro && reg.idMozo == mozoActual) {
+            productosPorMozo += reg.cantidad;
+            comisionPorMozo += reg.comision;
+            hayRegistro = (fread(&reg, sizeof(Comanda), 1, fSemanal) == 1);
         }
-    } else {
-        cout << "El archivo semanal no contiene registros." << endl;
+
+        string nombreMozo = obtenerNombreMozo(mozoActual);
+        cout << left << setw(10) << mozoActual
+             << setw(30) << nombreMozo
+             << right << setw(15) << productosPorMozo
+             << setw(15) << fixed << setprecision(2) << comisionPorMozo << endl;
+
+        totalProductosBuffet += productosPorMozo;
+        totalComisionBuffet += comisionPorMozo;
     }
 
     fclose(fSemanal);
 
+    if (totalProductosBuffet == 0) {
+        cout << "El archivo semanal no contiene registros." << endl;
+    }
+
     cout << "----------------------------------------------------------------------" << endl;
-    cout << "TOTAL DE PRODUCTOS VENDIDOS POR EL BUFFET EN LA SEMANA: " 
-         << totalProductosBuffet << " unidades." << endl;
-    cout << "================================================================------" << endl;
+    cout << left << setw(40) << "TOTAL DEL BUFFET"
+         << right << setw(15) << totalProductosBuffet << " unidades." << endl;
+    cout << "======================================================================" << endl;
 
     return 0;
 }
